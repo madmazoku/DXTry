@@ -109,7 +109,7 @@ bool GraphicsClass::Render()
 	// Generate the view matrix based on the camera's position.
 	static float x = 0;
 	m_pCamera->SetRotation(0.0f, 0.0f, 0.0f + x);
-	x += 0.1;
+	x += 0.1f;
 	m_pCamera->Render();
 
 	// Get the world, view, and projection matrices from the camera and d3d objects.

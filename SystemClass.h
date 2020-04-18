@@ -21,7 +21,7 @@ public:
 
 private:
 	bool Frame();
-	void InitializeWindows(int& screenWidth, int& screenHeight);
+	bool InitializeWindows(int& screenWidth, int& screenHeight);
 	void ShutdownWindows();
 
 private:

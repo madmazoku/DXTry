@@ -5,6 +5,9 @@
 
 D3DClass::D3DClass(const ConfigClass& config) : m_config(config), m_pSwapChain(NULL), m_pDevice(NULL), m_pDeviceContext(NULL), m_pRenderTargetView(NULL), m_pDepthStencilBuffer(NULL), m_pDepthStencilState(NULL), m_pDepthStencilView(NULL), m_pRasterState(NULL)
 {
+	m_projectionMatrix = XMMatrixIdentity();
+	m_worldMatrix = XMMatrixIdentity();
+	m_orthoMatrix = XMMatrixIdentity();
 }
 
 

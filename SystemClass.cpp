@@ -6,39 +6,6 @@
 #include <iostream>
 #include <strsafe.h>
 
-void ErrorExit(LPCTSTR lpszFunction)
-{
-	// Retrieve the system error message for the last-error code
-
-	LPVOID lpMsgBuf;
-	LPVOID lpDisplayBuf;
-	DWORD dw = GetLastError();
-
-	FormatMessage(
-		FORMAT_MESSAGE_ALLOCATE_BUFFER |
-		FORMAT_MESSAGE_FROM_SYSTEM |
-		FORMAT_MESSAGE_IGNORE_INSERTS,
-		NULL,
-		dw,
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		(LPTSTR)&lpMsgBuf,
-		0, NULL);
-
-	// Display the error message and exit the process
-
-	lpDisplayBuf = (LPVOID)LocalAlloc(LMEM_ZEROINIT,
-		(lstrlen((LPCTSTR)lpMsgBuf) + lstrlen((LPCTSTR)lpszFunction) + 40) * sizeof(TCHAR));
-	StringCchPrintf((LPTSTR)lpDisplayBuf,
-		LocalSize(lpDisplayBuf) / sizeof(TCHAR),
-		TEXT("%s failed with error %d: %s"),
-		lpszFunction, dw, lpMsgBuf);
-	MessageBox(NULL, (LPCTSTR)lpDisplayBuf, TEXT("Error"), MB_OK);
-
-	LocalFree(lpMsgBuf);
-	LocalFree(lpDisplayBuf);
-	ExitProcess(dw);
-}
-
 LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)
 {
 	std::cout << std::hex << "[WndProc] hwnd: " << hwnd << "; umsg: " << umessage << "; wp: " << wparam << "; lp: " << lparam << std::dec << std::endl;
@@ -108,7 +75,8 @@ bool SystemClass::Initialize()
 	screenHeight = 0;
 
 	// Initialize the windows api.
-	InitializeWindows(screenWidth, screenHeight);
+	if (!InitializeWindows(screenWidth, screenHeight))
+		return false;
 
 	// Create the graphics object.  This object will handle rendering all the graphics for this application.
 	m_pGraphics = new GraphicsClass(m_config);
@@ -165,7 +133,7 @@ bool SystemClass::Frame()
 	return true;
 }
 
-void SystemClass::InitializeWindows(int& screenWidth, int& screenHeight)
+bool SystemClass::InitializeWindows(int& screenWidth, int& screenHeight)
 {
 	WNDCLASSEX wc;
 	int posX, posY;
@@ -209,7 +177,8 @@ void SystemClass::InitializeWindows(int& screenWidth, int& screenHeight)
 		WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
 		posX, posY, screenWidth, screenHeight, NULL, NULL, m_hinstance, (LPVOID)this);
 	if (m_hwnd == NULL) {
-		ErrorExit(TEXT("CreateWindowEx"));
+		std::cerr << "[ERROR] Can't create window" << std::endl;
+		return false;
 	}
 
 	// Bring the window up on the screen and set it as main focus.
@@ -217,7 +186,7 @@ void SystemClass::InitializeWindows(int& screenWidth, int& screenHeight)
 	SetForegroundWindow(m_hwnd);
 	SetFocus(m_hwnd);
 
-	return;
+	return true;
 }
 
 void SystemClass::ShutdownWindows()

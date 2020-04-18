@@ -2,6 +2,8 @@
 
 CameraClass::CameraClass(const ConfigClass& config) : m_config(config)
 {
+	m_viewMatrix = XMMatrixIdentity();
+
 	m_positionX = 0.0f;
 	m_positionY = 0.0f;
 	m_positionZ = 0.0f;
