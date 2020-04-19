@@ -129,6 +129,10 @@ bool GraphicsClass::Render()
 	m_pDirect3D->GetProjectionMatrix(projectionMatrix);
 	m_pCamera->GetViewMatrix(viewMatrix);
 
+	static float angle = 0;
+	angle += 0.01f;
+	worldMatrix = XMMatrixMultiply(XMMatrixRotationY(angle * 0.5f), XMMatrixMultiply(XMMatrixRotationX(angle), worldMatrix));
+
 	// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	m_pModel->Render(m_pDirect3D->GetDeviceContext());
 

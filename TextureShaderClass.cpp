@@ -210,5 +210,7 @@ void TextureShaderClass::RenderShader(ID3D11DeviceContext* pDeviceContext, int i
 	pDeviceContext->PSSetSamplers(0, 1, &m_pSampleState);
 
 	// Render the triangle.
-	pDeviceContext->DrawIndexed(indexCount, 0, 0);
+//	pDeviceContext->DrawIndexed(indexCount, 0, 0);
+	pDeviceContext->DrawIndexed(8, 0, 0);
+	pDeviceContext->DrawIndexed(8, 0, indexCount);
 }
