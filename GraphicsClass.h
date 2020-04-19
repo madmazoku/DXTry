@@ -2,6 +2,7 @@
 
 #include "D3DClass.h"
 #include "ColorShaderClass.h"
+#include "TextureShaderClass.h"
 #include "ModelClass.h"
 #include "CameraClass.h"
 #include "ConfigClass.h"
@@ -24,6 +25,7 @@ private:
 
 	D3DClass* m_pDirect3D;
 	ColorShaderClass* m_pColorShader;
+	TextureShaderClass* m_pTextureShader;
 	ModelClass* m_pModel;
 	CameraClass* m_pCamera;
 };

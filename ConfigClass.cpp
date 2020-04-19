@@ -6,8 +6,9 @@
 
 ConfigClass::ConfigClass(int argc, char** argv)
 {
-	m_AppPath = argv[0];
-	m_AppDir = m_AppPath.parent_path();
+	m_currentDir = std::filesystem::current_path();
+	m_appPath = argv[0];
+	m_appDir = m_appPath.parent_path();
 }
 
 ConfigClass::~ConfigClass()

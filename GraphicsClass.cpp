@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-GraphicsClass::GraphicsClass(const ConfigClass& config) : m_config(config), m_pDirect3D(NULL), m_pColorShader(NULL), m_pModel(NULL), m_pCamera(NULL)
+GraphicsClass::GraphicsClass(const ConfigClass& config) : m_config(config), m_pDirect3D(NULL), m_pColorShader(NULL), m_pTextureShader(NULL), m_pModel(NULL), m_pCamera(NULL)
 {
 }
 
@@ -33,7 +33,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	// Create the model object.
 	// Initialize the model object.
 	m_pModel = new ModelClass(m_config);
-	if (!m_pModel->Initialize(m_pDirect3D->GetDevice()))
+	if (!m_pModel->Initialize(m_pDirect3D->GetDevice(), m_pDirect3D->GetDeviceContext()))
 	{
 		std::cerr << "[ERROR] Could not initialize the model object" << std::endl;
 		return false;
@@ -48,12 +48,29 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+	// Create the texture shader object.
+	// Initialize the color shader object.
+	m_pTextureShader = new TextureShaderClass(m_config);
+	if (!m_pTextureShader->Initialize(m_pDirect3D->GetDevice()))
+	{
+		std::cerr << "[ERROR] Could not initialize the texture shader object" << std::endl;
+		return false;
+	}
+
 	return true;
 }
 
 
 void GraphicsClass::Shutdown()
 {
+	// Release the texture shader object.
+	if (m_pTextureShader)
+	{
+		m_pTextureShader->Shutdown();
+		delete m_pTextureShader;
+		m_pTextureShader = NULL;
+	}
+
 	// Release the color shader object.
 	if (m_pColorShader)
 	{
@@ -84,8 +101,6 @@ void GraphicsClass::Shutdown()
 		delete m_pDirect3D;
 		m_pDirect3D = NULL;
 	}
-
-	return;
 }
 
 
@@ -117,8 +132,14 @@ bool GraphicsClass::Render()
 	// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	m_pModel->Render(m_pDirect3D->GetDeviceContext());
 
+/*
 	// Render the model using the color shader.
 	if (!m_pColorShader->Render(m_pDirect3D->GetDeviceContext(), m_pModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix))
+		return false;
+*/
+
+	// Render the model using the texture shader.
+	if (!m_pTextureShader->Render(m_pDirect3D->GetDeviceContext(), m_pModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_pModel->GetTexture()))
 		return false;
 
 	// Present the rendered scene to the screen.

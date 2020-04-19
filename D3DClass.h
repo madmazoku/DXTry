@@ -1,5 +1,12 @@
 #pragma once
 
+/***********************************************************************************
+
+	Simple training DirectX11 application, based on http://rastertek.com tutorial
+and DirectXTK.
+
+************************************************************************************/
+
 #include <d3d11.h>
 #include <directxmath.h>
 #include "ConfigClass.h"

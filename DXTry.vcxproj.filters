@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Assets">
+      <UniqueIdentifier>{b1753f28-b54e-4456-b07a-437b2c62fd25}</UniqueIdentifier>
+    </Filter>
     <Filter Include="HLSL">
       <UniqueIdentifier>{b941cce3-451b-4859-a68f-dcccb71fb2d3}</UniqueIdentifier>
     </Filter>
@@ -42,6 +45,12 @@
     <ClCompile Include="CameraClass.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="TextureShaderClass.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureClass.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SystemClass.h">
@@ -65,11 +74,12 @@
     <ClInclude Include="CameraClass.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Types.hlsli">
-      <Filter>HLSL</Filter>
-    </None>
+    <ClInclude Include="TextureShaderClass.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureClass.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Color_PS.hlsl">
@@ -78,5 +88,21 @@
     <FxCompile Include="Color_VS.hlsl">
       <Filter>HLSL</Filter>
     </FxCompile>
+    <FxCompile Include="Texture_VS.hlsl">
+      <Filter>HLSL</Filter>
+    </FxCompile>
+    <FxCompile Include="Texture_PS.hlsl">
+      <Filter>HLSL</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Wall.dds">
+      <Filter>Assets</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Common.hlsli">
+      <Filter>HLSL</Filter>
+    </None>
   </ItemGroup>
 </Project>

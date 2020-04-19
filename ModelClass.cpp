@@ -1,6 +1,6 @@
 #include "ModelClass.h"
 
-ModelClass::ModelClass(const ConfigClass& config) : m_config(config), m_pVertexBuffer(NULL), m_pIndexBuffer(NULL), m_vertexCount(0), m_indexCount(0)
+ModelClass::ModelClass(const ConfigClass& config) : m_config(config), m_pTexture(NULL), m_pVertexBuffer(NULL), m_pIndexBuffer(NULL), m_vertexCount(0), m_indexCount(0)
 {
 }
 
@@ -8,9 +8,13 @@ ModelClass::~ModelClass()
 {
 }
 
-bool ModelClass::Initialize(ID3D11Device* pDevice)
+bool ModelClass::Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext)
 {
 	if (!InitializeBuffers(pDevice))
+		return false;
+
+	// Load the texture for this model.
+	if (!LoadTexture(pDevice, pDeviceContext, "Wall"))
 		return false;
 
 	return true;
@@ -18,9 +22,11 @@ bool ModelClass::Initialize(ID3D11Device* pDevice)
 
 void ModelClass::Shutdown()
 {
+	// Release the model texture.
+	ReleaseTexture();
+
 	// Shutdown the vertex and index buffers.
 	ShutdownBuffers();
-
 }
 
 void ModelClass::Render(ID3D11DeviceContext* pDeviceContext)
@@ -35,10 +41,13 @@ int ModelClass::GetIndexCount()
 	return m_indexCount;
 }
 
+ID3D11ShaderResourceView* ModelClass::GetTexture()
+{
+	return m_pTexture->GetTexture();
+}
+
 bool ModelClass::InitializeBuffers(ID3D11Device* pDevice)
 {
-	VertexType* pVertices;
-	unsigned long* pIndices;
 	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
 
@@ -49,23 +58,28 @@ bool ModelClass::InitializeBuffers(ID3D11Device* pDevice)
 	m_indexCount = 4;
 
 	// Create the vertex array.
-	pVertices = new VertexType[m_vertexCount];
+//	VertexTypeColor* pVertices = new VertexTypeColor[m_vertexCount];
+	VertexTypeTex* pVertices = new VertexTypeTex[m_vertexCount];
 
 	// Create the index array.
-	pIndices = new unsigned long[m_indexCount];
+	unsigned long* pIndices = new unsigned long[m_indexCount];
 
 	// Load the vertex array with data.
 	pVertices[0].position = XMFLOAT3(-1.0f, -1.0f, 0.0f);  // Bottom left.
-	pVertices[0].color = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
+//	pVertices[0].color = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
+	pVertices[0].texture = XMFLOAT2(0.0f, 0.0f);
 
 	pVertices[1].position = XMFLOAT3(-1.0f, 1.0f, 0.0f);  // Top left.
-	pVertices[1].color = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
+//	pVertices[1].color = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
+	pVertices[1].texture = XMFLOAT2(0.0f, 1.0f);
 
 	pVertices[2].position = XMFLOAT3(1.0f, 1.0f, 0.0f);  // Top right.
-	pVertices[2].color = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
+//	pVertices[2].color = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
+	pVertices[2].texture = XMFLOAT2(1.0f, 1.0f);
 
 	pVertices[3].position = XMFLOAT3(1.0f, -1.0f, 0.0f);  // Bottom right.
-	pVertices[3].color = XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f);
+//	pVertices[3].color = XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f);
+	pVertices[3].texture = XMFLOAT2(1.0f, 0.0f);
 
 	// Load the index array with data.
 	pIndices[0] = 0;  // Bottom left.
@@ -75,7 +89,8 @@ bool ModelClass::InitializeBuffers(ID3D11Device* pDevice)
 
 		// Set up the description of the static vertex buffer.
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexBufferDesc.ByteWidth = sizeof(VertexType) * m_vertexCount;
+//	vertexBufferDesc.ByteWidth = sizeof(VertexTypeColor) * m_vertexCount;
+	vertexBufferDesc.ByteWidth = sizeof(VertexTypeTex) * m_vertexCount;
 	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vertexBufferDesc.CPUAccessFlags = 0;
 	vertexBufferDesc.MiscFlags = 0;
@@ -142,7 +157,8 @@ void ModelClass::RenderBuffers(ID3D11DeviceContext* pDeviceContext)
 
 
 	// Set vertex buffer stride and offset.
-	stride = sizeof(VertexType);
+//	stride = sizeof(VertexTypeColor);
+	stride = sizeof(VertexTypeTex);
 	offset = 0;
 
 	// Set the vertex buffer to active in the input assembler so it can be rendered.
@@ -155,4 +171,27 @@ void ModelClass::RenderBuffers(ID3D11DeviceContext* pDeviceContext)
 	pDeviceContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 	return;
+}
+
+bool ModelClass::LoadTexture(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, const std::string& ddsFilename)
+{
+	// Create the texture object.
+	m_pTexture = new TextureClass(m_config);
+
+	// Initialize the texture object.
+	if (!m_pTexture->Initialize(pDevice, pDeviceContext, ddsFilename))
+		return false;
+
+	return true;
+}
+
+void ModelClass::ReleaseTexture()
+{
+	// Release the texture object.
+	if (m_pTexture)
+	{
+		m_pTexture->Shutdown();
+		delete m_pTexture;
+		m_pTexture = NULL;
+	}
 }

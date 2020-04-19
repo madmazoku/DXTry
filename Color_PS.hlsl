@@ -1,6 +1,6 @@
-#include "Types.hlsli"
+#include "Common.hlsli"
 
-float4 main(PixelInputType input) : SV_TARGET
+float4 main(PixelTypeColor input) : SV_TARGET
 {
     return input.color;
 }

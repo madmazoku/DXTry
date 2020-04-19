@@ -1,8 +1,8 @@
 #include "Common.hlsli"
 
-PixelTypeColor main(VertexTypeColor input)
+PixelTypeTex main(VertexTypeTex input)
 {
-    PixelTypeColor output;
+    PixelTypeTex output;
 
     // Change the position vector to be 4 units for proper matrix calculations.
     input.position.w = 1.0f;
@@ -13,7 +13,7 @@ PixelTypeColor main(VertexTypeColor input)
     output.position = mul(output.position, projectionMatrix);
 
     // Store the input color for the pixel shader to use.
-    output.color = input.color;
+    output.tex = input.tex;
 
     return output;
 }
