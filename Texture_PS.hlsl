@@ -1,4 +1,8 @@
-#include "Common.hlsli"
+struct PixelTypeTex
+{
+    float4 position : SV_POSITION;
+    float4 tex : TEXCOORD0;
+};
 
 Texture2D shaderTexture;
 SamplerState SampleType;

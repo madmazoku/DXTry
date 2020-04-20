@@ -1,5 +1,8 @@
 #include "TextureClass.h"
 
+#include <DDSTextureLoader.h>
+using namespace DirectX;
+
 TextureClass::TextureClass(const ConfigClass& config) : m_config(config), m_pTexture(NULL), m_pTextureView(NULL)
 {
 }

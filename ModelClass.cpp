@@ -51,99 +51,54 @@ bool ModelClass::InitializeBuffers(ID3D11Device* pDevice)
 	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
 
-	// Set the number of vertices in the vertex array.
-	m_vertexCount = 16;
+// Set the number of vertices in the vertex array.
+	m_vertexCount = 4;
 
-	// Set the number of indices in the index array.
-	m_indexCount = 8;
+// Set the number of indices in the index array.
+	m_indexCount = 6;
 
 	// Create the vertex array.
 //	VertexTypeColor* pVertices = new VertexTypeColor[m_vertexCount];
-	VertexTypeTex* pVertices = new VertexTypeTex[m_vertexCount];
+	//VertexTypeTex* pVertices = new VertexTypeTex[m_vertexCount];
+	VertexTypeLight* pVertices = new VertexTypeLight[m_vertexCount];
 
 	// Create the index array.
 	unsigned long* pIndices = new unsigned long[m_indexCount];
 
 // Load the vertex array with data. Part 1
-	pVertices[0].position = XMFLOAT3(-1.0f, -1.0f, -1.0f);  // Bottom left forward.
+	pVertices[0].position = XMFLOAT3(-1.0f, -1.0f, 0.0f);  // Bottom left.
 //	pVertices[0].color = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
 	pVertices[0].texture = XMFLOAT2(0.0f, 0.0f);
+	pVertices[0].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
 
-	pVertices[1].position = XMFLOAT3(-1.0f, 1.0f, -1.0f);  // Top left forward.
+	pVertices[1].position = XMFLOAT3(-1.0f, 1.0f, 0.0f);  // Top left.
 //	pVertices[1].color = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
 	pVertices[1].texture = XMFLOAT2(0.0f, 1.0f);
+	pVertices[1].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
 
-	pVertices[2].position = XMFLOAT3(1.0f, 1.0f, -1.0f);  // Top right forward.
+	pVertices[2].position = XMFLOAT3(1.0f, 1.0f, 0.0f);  // Top right.
 //	pVertices[2].color = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
 	pVertices[2].texture = XMFLOAT2(1.0f, 1.0f);
+	pVertices[2].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
 
-	pVertices[3].position = XMFLOAT3(1.0f, -1.0f, -1.0f);  // Bottom right forward.
+	pVertices[3].position = XMFLOAT3(1.0f, -1.0f, 0.0f);  // Bottom right.
 //	pVertices[3].color = XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f);
 	pVertices[3].texture = XMFLOAT2(1.0f, 0.0f);
-
-	pVertices[4].position = XMFLOAT3(-1.0f, -1.0f, 1.0f);  // Bottom left backward.
-//	pVertices[4].color = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
-	pVertices[4].texture = XMFLOAT2(1.0f, 0.0f);
-
-	pVertices[5].position = XMFLOAT3(-1.0f, 1.0f, 1.0f);  // Top left backward.
-//	pVertices[5].color = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
-	pVertices[5].texture = XMFLOAT2(1.0f, 1.0f);
-
-	pVertices[6].position = XMFLOAT3(1.0f, 1.0f, 1.0f);  // Top right backward.
-//	pVertices[6].color = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
-	pVertices[6].texture = XMFLOAT2(0.0f, 1.0f);
-
-	pVertices[7].position = XMFLOAT3(1.0f, -1.0f, 1.0f);  // Bottom right backward.
-//	pVertices[7].color = XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f);
-	pVertices[7].texture = XMFLOAT2(0.0f, 0.0f);
-
-// Load the vertex array with data. Part 2
-	pVertices[8].position = XMFLOAT3(1.0f, 1.0f, 1.0f);  // Top right backward.
-//	pVertices[8].color = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
-	pVertices[8].texture = XMFLOAT2(0.0f, 0.0f);
-
-	pVertices[9].position = XMFLOAT3(-1.0f, 1.0f, 1.0f);  // Top left backward.
-//	pVertices[9].color = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
-	pVertices[9].texture = XMFLOAT2(0.0f, 1.0f);
-
-	pVertices[10].position = XMFLOAT3(-1.0f, -1.0f, 1.0f);  // Bottom left backward.
-//	pVertices[10].color = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
-	pVertices[10].texture = XMFLOAT2(1.0f, 1.0f);
-
-	pVertices[11].position = XMFLOAT3(1.0f, -1.0f, 1.0f);  // Bottom right backward.
-//	pVertices[11].color = XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f);
-	pVertices[11].texture = XMFLOAT2(1.0f, 0.0f);
-
-	pVertices[12].position = XMFLOAT3(1.0f, 1.0f, -1.0f);  // Top right forward.
-//	pVertices[12].color = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
-	pVertices[12].texture = XMFLOAT2(1.0f, 0.0f);
-
-	pVertices[13].position = XMFLOAT3(-1.0f, 1.0f, -1.0f);  // Top left forward.
-//	pVertices[13].color = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
-	pVertices[13].texture = XMFLOAT2(1.0f, 1.0f);
-
-	pVertices[14].position = XMFLOAT3(-1.0f, -1.0f, -1.0f);  // Bottom left forward.
-//	pVertices[14].color = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
-	pVertices[14].texture = XMFLOAT2(0.0f, 1.0f);
-
-	pVertices[15].position = XMFLOAT3(1.0f, -1.0f, -1.0f);  // Bottom right forward.
-//	pVertices[15].color = XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f);
-	pVertices[15].texture = XMFLOAT2(0.0f, 0.0f);
+	pVertices[3].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
 
 // Load the index array with data.
-	pIndices[0] = 4;
-	pIndices[1] = 5;
-	pIndices[2] = 0;
-	pIndices[3] = 1;
-	pIndices[4] = 3;
+	pIndices[0] = 0;
+	pIndices[1] = 1;
+	pIndices[2] = 3;
+	pIndices[3] = 3;
+	pIndices[4] = 1;
 	pIndices[5] = 2;
-	pIndices[6] = 7;
-	pIndices[7] = 6;
 
 // Set up the description of the static vertex buffer.
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 //	vertexBufferDesc.ByteWidth = sizeof(VertexTypeColor) * m_vertexCount;
-	vertexBufferDesc.ByteWidth = sizeof(VertexTypeTex) * m_vertexCount;
+	//vertexBufferDesc.ByteWidth = sizeof(VertexTypeTex) * m_vertexCount;
+	vertexBufferDesc.ByteWidth = sizeof(VertexTypeLight) * m_vertexCount;
 	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vertexBufferDesc.CPUAccessFlags = 0;
 	vertexBufferDesc.MiscFlags = 0;
@@ -211,7 +166,8 @@ void ModelClass::RenderBuffers(ID3D11DeviceContext* pDeviceContext)
 
 	// Set vertex buffer stride and offset.
 //	stride = sizeof(VertexTypeColor);
-	stride = sizeof(VertexTypeTex);
+	//stride = sizeof(VertexTypeTex);
+	stride = sizeof(VertexTypeLight);
 	offset = 0;
 
 	// Set the vertex buffer to active in the input assembler so it can be rendered.
@@ -221,7 +177,7 @@ void ModelClass::RenderBuffers(ID3D11DeviceContext* pDeviceContext)
 	pDeviceContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
 	// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
-	pDeviceContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	pDeviceContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
 bool ModelClass::LoadTexture(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, const std::string& ddsFilename)

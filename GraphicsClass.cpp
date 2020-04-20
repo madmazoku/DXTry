@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-GraphicsClass::GraphicsClass(const ConfigClass& config) : m_config(config), m_pDirect3D(NULL), m_pColorShader(NULL), m_pTextureShader(NULL), m_pModel(NULL), m_pCamera(NULL)
+GraphicsClass::GraphicsClass(const ConfigClass& config) : m_config(config), m_pDirect3D(NULL), m_pColorShader(NULL), m_pTextureShader(NULL), m_pLightShader(NULL), m_pLight(NULL), m_pModel(NULL), m_pCamera(NULL)
 {
 }
 
@@ -29,6 +29,12 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	// Set the initial position of the camera.
 	m_pCamera = new CameraClass(m_config);
 	m_pCamera->SetPosition(0.0f, 0.0f, -5.0f);
+
+	// Create the light object.
+	// Initialize the light object.
+	m_pLight = new LightClass(m_config);
+	m_pLight->SetDiffuseColor(1.0f, 0.0f, 1.0f, 1.0f);
+	m_pLight->SetDirection(0.0f, 0.0f, 1.0f);
 
 	// Create the model object.
 	// Initialize the model object.
@@ -57,12 +63,29 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+	// Create the light shader object.
+	// Initialize the color shader object.
+	m_pLightShader = new LightShaderClass(m_config);
+	if (!m_pLightShader->Initialize(m_pDirect3D->GetDevice()))
+	{
+		std::cerr << "[ERROR] Could not initialize the light shader object" << std::endl;
+		return false;
+	}
+
 	return true;
 }
 
 
 void GraphicsClass::Shutdown()
 {
+	// Release the light shader object.
+	if (m_pLightShader)
+	{
+		m_pLightShader->Shutdown();
+		delete m_pLightShader;
+		m_pLightShader = NULL;
+	}
+
 	// Release the texture shader object.
 	if (m_pTextureShader)
 	{
@@ -85,6 +108,13 @@ void GraphicsClass::Shutdown()
 		m_pModel->Shutdown();
 		delete m_pModel;
 		m_pModel = NULL;
+	}
+
+	// Release the light object.
+	if (m_pLight)
+	{
+		delete m_pLight;
+		m_pLight = NULL;
 	}
 
 	// Release the camera object.
@@ -131,20 +161,28 @@ bool GraphicsClass::Render()
 
 	static float angle = 0;
 	angle += 0.01f;
-	worldMatrix = XMMatrixMultiply(XMMatrixRotationY(angle * 0.5f), XMMatrixMultiply(XMMatrixRotationX(angle), worldMatrix));
+//	worldMatrix = XMMatrixMultiply(XMMatrixRotationY(angle * 0.5f), XMMatrixMultiply(XMMatrixRotationX(angle), worldMatrix));
+	worldMatrix = XMMatrixMultiply(XMMatrixRotationX(sin(angle)), worldMatrix);
 
 	// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	m_pModel->Render(m_pDirect3D->GetDeviceContext());
 
 /*
-	// Render the model using the color shader.
+// Render the model using the color shader.
 	if (!m_pColorShader->Render(m_pDirect3D->GetDeviceContext(), m_pModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix))
 		return false;
 */
 
-	// Render the model using the texture shader.
+/*
+// Render the model using the texture shader.
 	if (!m_pTextureShader->Render(m_pDirect3D->GetDeviceContext(), m_pModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_pModel->GetTexture()))
 		return false;
+*/
+
+// Render the model using the texture shader.
+	if (!m_pLightShader->Render(m_pDirect3D->GetDeviceContext(), m_pModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_pModel->GetTexture(), m_pLight->GetDirection(), m_pLight->GetDiffuseColor()))
+		return false;
+
 
 	// Present the rendered scene to the screen.
 	m_pDirect3D->EndScene();

@@ -1,32 +1,32 @@
-#include "TextureShaderClass.h"
+#include "LightShaderClass.h"
 
-TextureShaderClass::TextureShaderClass(const ConfigClass& config) : m_config(config), m_pVertexShader(NULL), m_pPixelShader(NULL), m_pLayout(NULL), m_pMatrixBuffer(NULL), m_pSampleState(NULL)
+LightShaderClass::LightShaderClass(const ConfigClass& config) : m_config(config), m_pVertexShader(NULL), m_pPixelShader(NULL), m_pLayout(NULL), m_pMatrixBuffer(NULL), m_pLightBuffer(NULL), m_pSampleState(NULL)
 {
 }
 
-TextureShaderClass::~TextureShaderClass()
+LightShaderClass::~LightShaderClass()
 {
 }
 
-bool TextureShaderClass::Initialize(ID3D11Device* pDevice)
+bool LightShaderClass::Initialize(ID3D11Device* pDevice)
 {
 	// Initialize the vertex and pixel shaders.
-	if (!InitializeShader(pDevice, "Texture_VS", "Texture_PS"))
+	if (!InitializeShader(pDevice, "Light_VS", "Light_PS"))
 		return false;
 
 	return true;
 }
 
-void TextureShaderClass::Shutdown()
+void LightShaderClass::Shutdown()
 {
 	// Shutdown the vertex and pixel shaders as well as the related objects.
 	ShutdownShader();
 }
 
-bool TextureShaderClass::Render(ID3D11DeviceContext* pDeviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* pTexture)
+bool LightShaderClass::Render(ID3D11DeviceContext* pDeviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* pTexture, XMVECTOR lightDirection, XMVECTOR diffuseColor)
 {
 	// Set the shader parameters that it will use for rendering.
-	if (!SetShaderParameters(pDeviceContext, worldMatrix, viewMatrix, projectionMatrix, pTexture))
+	if (!SetShaderParameters(pDeviceContext, worldMatrix, viewMatrix, projectionMatrix, pTexture, lightDirection, diffuseColor))
 		return false;
 
 	// Now render the prepared buffers with the shader.
@@ -35,13 +35,14 @@ bool TextureShaderClass::Render(ID3D11DeviceContext* pDeviceContext, int indexCo
 	return true;
 }
 
-bool TextureShaderClass::InitializeShader(ID3D11Device* pDevice, const std::string & vsShaderName, const std::string & psShaderName)
+bool LightShaderClass::InitializeShader(ID3D11Device* pDevice, const std::string& vsShaderName, const std::string& psShaderName)
 {
 	ID3D10Blob* pVertexShaderBuffer = NULL;
 	ID3D10Blob* pPixelShaderBuffer = NULL;
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
 	unsigned int numElements;
 	D3D11_BUFFER_DESC matrixBufferDesc;
+	D3D11_BUFFER_DESC lightBufferDesc;
 	D3D11_SAMPLER_DESC samplerDesc;
 
 	// Read compiled shader buffers
@@ -74,6 +75,14 @@ bool TextureShaderClass::InitializeShader(ID3D11Device* pDevice, const std::stri
 	polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[1].InstanceDataStepRate = 0;
 
+	polygonLayout[2].SemanticName = "NORMAL";
+	polygonLayout[2].SemanticIndex = 0;
+	polygonLayout[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[2].InputSlot = 0;
+	polygonLayout[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[2].InstanceDataStepRate = 0;
+
 	// Get a count of the elements in the layout.
 	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
 
@@ -95,6 +104,19 @@ bool TextureShaderClass::InitializeShader(ID3D11Device* pDevice, const std::stri
 
 	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
 	if (FAILED(pDevice->CreateBuffer(&matrixBufferDesc, NULL, &m_pMatrixBuffer)))
+		return false;
+
+	// Setup the description of the light dynamic constant buffer that is in the pixel shader.
+	// Note that ByteWidth always needs to be a multiple of 16 if using D3D11_BIND_CONSTANT_BUFFER or CreateBuffer will fail.
+	lightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	lightBufferDesc.ByteWidth = sizeof(LightBufferType);
+	lightBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	lightBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	lightBufferDesc.MiscFlags = 0;
+	lightBufferDesc.StructureByteStride = 0;
+
+	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+	if (FAILED(pDevice->CreateBuffer(&lightBufferDesc, NULL, &m_pLightBuffer)))
 		return false;
 
 	// Create a texture sampler state description.
@@ -119,7 +141,7 @@ bool TextureShaderClass::InitializeShader(ID3D11Device* pDevice, const std::stri
 	return true;
 }
 
-void TextureShaderClass::ShutdownShader()
+void LightShaderClass::ShutdownShader()
 {
 	// Release the sampler state.
 	if (m_pSampleState)
@@ -133,6 +155,13 @@ void TextureShaderClass::ShutdownShader()
 	{
 		m_pMatrixBuffer->Release();
 		m_pMatrixBuffer = NULL;
+	}
+
+	// Release the light constant buffer.
+	if (m_pLightBuffer)
+	{
+		m_pLightBuffer->Release();
+		m_pLightBuffer = NULL;
 	}
 
 	// Release the layout.
@@ -157,12 +186,12 @@ void TextureShaderClass::ShutdownShader()
 	}
 }
 
-bool TextureShaderClass::SetShaderParameters(ID3D11DeviceContext* pDeviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* pTexture)
+bool LightShaderClass::SetShaderParameters(ID3D11DeviceContext* pDeviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* pTexture, XMVECTOR lightDirection, XMVECTOR diffuseColor)
 {
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* pMatrixData;
+	LightBufferType* pLightData;
 	unsigned int bufferNumber;
-
 
 	// Transpose the matrices to prepare them for the shader.
 	worldMatrix = XMMatrixTranspose(worldMatrix);
@@ -193,10 +222,30 @@ bool TextureShaderClass::SetShaderParameters(ID3D11DeviceContext* pDeviceContext
 	// Set shader texture resource in the pixel shader.
 	pDeviceContext->PSSetShaderResources(0, 1, &pTexture);
 
+	// Lock the light constant buffer so it can be written to.
+	if (FAILED(pDeviceContext->Map(m_pLightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))
+		return false;
+
+	// Get a pointer to the data in the constant buffer.
+	pLightData = (LightBufferType*)mappedResource.pData;
+
+	// Copy the lighting variables into the constant buffer.
+	pLightData->diffuseColor = diffuseColor;
+	pLightData->lightDirection = lightDirection;
+
+	// Unlock the constant buffer.
+	pDeviceContext->Unmap(m_pLightBuffer, 0);
+
+	// Set the position of the light constant buffer in the pixel shader.
+	bufferNumber = 0;
+
+	// Finally set the light constant buffer in the pixel shader with the updated values.
+	pDeviceContext->PSSetConstantBuffers(bufferNumber, 1, &m_pLightBuffer);
+
 	return true;
 }
 
-void TextureShaderClass::RenderShader(ID3D11DeviceContext* pDeviceContext, int indexCount)
+void LightShaderClass::RenderShader(ID3D11DeviceContext* pDeviceContext, int indexCount)
 {
 	// Set the vertex input layout.
 	pDeviceContext->IASetInputLayout(m_pLayout);

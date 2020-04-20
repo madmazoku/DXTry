@@ -41,7 +41,6 @@ bool ColorShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount
 
 bool ColorShaderClass::InitializeShader(ID3D11Device* pDevice, const std::string & vsShaderName, const std::string & psShaderName)
 {
-	ID3D10Blob* pErrorMessage = NULL;
 	ID3D10Blob* pVertexShaderBuffer = NULL;
 	ID3D10Blob* pPixelShaderBuffer = NULL;
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];

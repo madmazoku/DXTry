@@ -1,13 +1,15 @@
-struct VertexTypeTex
+struct VertexTypeLight
 {
     float4 position : POSITION;
-    float4 tex : TEXCOORD0;
+    float2 tex : TEXCOORD0;
+    float3 normal : NORMAL;
 };
 
-struct PixelTypeTex
+struct PixelTypeLight
 {
     float4 position : SV_POSITION;
-    float4 tex : TEXCOORD0;
+    float2 tex : TEXCOORD0;
+    float3 normal : NORMAL;
 };
 
 cbuffer MatrixBuffer
@@ -17,9 +19,9 @@ cbuffer MatrixBuffer
     matrix projectionMatrix;
 };
 
-PixelTypeTex main(VertexTypeTex input)
+PixelTypeLight main(VertexTypeLight input)
 {
-    PixelTypeTex output;
+    PixelTypeLight output;
 
     // Change the position vector to be 4 units for proper matrix calculations.
     input.position.w = 1.0f;
@@ -29,8 +31,14 @@ PixelTypeTex main(VertexTypeTex input)
     output.position = mul(output.position, viewMatrix);
     output.position = mul(output.position, projectionMatrix);
 
-    // Store the input color for the pixel shader to use.
+    // Store the texture coordinates for the pixel shader.
     output.tex = input.tex;
+
+    // Calculate the normal vector against the world matrix only.
+    output.normal = mul(input.normal, (float3x3)worldMatrix);
+
+    // Normalize the normal vector.
+    output.normal = normalize(output.normal);
 
     return output;
 }

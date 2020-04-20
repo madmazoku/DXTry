@@ -11,15 +11,21 @@ using namespace DirectX;
 class ModelClass
 {
 private:
-	struct VertexTypeColor
-	{
-		XMFLOAT3 position;
-		XMFLOAT4 color;
-	};
-	struct VertexTypeTex
+	//struct VertexTypeColor
+	//{
+	//	XMFLOAT3 position;
+	//	XMFLOAT4 color;
+	//};
+	//struct VertexTypeTex
+	//{
+	//	XMFLOAT3 position;
+	//	XMFLOAT2 texture;
+	//};
+	struct VertexTypeLight
 	{
 		XMFLOAT3 position;
 		XMFLOAT2 texture;
+		XMFLOAT3 normal;
 	};
 
 public:

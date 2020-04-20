@@ -1,4 +1,21 @@
-#include "Common.hlsli"
+struct VertexTypeColor
+{
+    float4 position : POSITION;
+    float4 color : COLOR;
+};
+
+struct PixelTypeColor
+{
+    float4 position : SV_POSITION;
+    float4 color : COLOR;
+};
+
+cbuffer MatrixBuffer
+{
+    matrix worldMatrix;
+    matrix viewMatrix;
+    matrix projectionMatrix;
+};
 
 PixelTypeColor main(VertexTypeColor input)
 {

@@ -1,9 +1,10 @@
 #pragma once
 
 #include <directxmath.h>
-using namespace DirectX; 
 
 #include "ConfigClass.h"
+
+using namespace DirectX;
 
 class CameraClass
 {
