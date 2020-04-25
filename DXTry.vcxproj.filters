@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Assets">
-      <UniqueIdentifier>{b1753f28-b54e-4456-b07a-437b2c62fd25}</UniqueIdentifier>
-    </Filter>
     <Filter Include="HLSL">
       <UniqueIdentifier>{b941cce3-451b-4859-a68f-dcccb71fb2d3}</UniqueIdentifier>
     </Filter>
@@ -114,8 +111,18 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="cube.fbx">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <Image Include="Wall.dds">
-      <Filter>Assets</Filter>
+      <Filter>Файлы ресурсов</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ShaderGraphContentTask Include="Shader.dgsl">
+      <Filter>Файлы ресурсов</Filter>
+    </ShaderGraphContentTask>
   </ItemGroup>
 </Project>

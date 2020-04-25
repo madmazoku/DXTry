@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-GraphicsClass::GraphicsClass(const ConfigClass& config) : m_config(config), m_pDirect3D(NULL), m_pColorShader(NULL), m_pTextureShader(NULL), m_pLightShader(NULL), m_pLight(NULL), m_pModel(NULL), m_pCamera(NULL)
+GraphicsClass::GraphicsClass(const ConfigClass& config) : m_config(config), m_pStates(nullptr), m_pEffectFactory(nullptr), m_pCMOModel(nullptr), m_pDirect3D(NULL), m_pColorShader(NULL), m_pTextureShader(NULL), m_pLightShader(NULL), m_pLight(NULL), m_pModel(NULL), m_pCamera(NULL)
 {
 }
 
@@ -14,7 +14,6 @@ GraphicsClass::~GraphicsClass()
 
 bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 {
-
 	// Create the Direct3D object.
 	m_pDirect3D = new D3DClass(m_config);
 
@@ -33,8 +32,12 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	// Create the light object.
 	// Initialize the light object.
 	m_pLight = new LightClass(m_config);
-	m_pLight->SetDiffuseColor(1.0f, 0.0f, 1.0f, 1.0f);
+	m_pLight->SetDiffuseColor(1.0f, 1.0f, 0.75f, 1.0f);
 	m_pLight->SetDirection(0.0f, 0.0f, 1.0f);
+
+	m_pStates = std::make_unique<CommonStates>(m_pDirect3D->GetDevice());
+	m_pEffectFactory = std::make_unique<EffectFactory>(m_pDirect3D->GetDevice());
+	m_pCMOModel = Model::CreateFromCMO(m_pDirect3D->GetDevice(), m_config.pathToCMO("Cube").wstring().c_str(), *m_pEffectFactory, DirectX::ModelLoader_Clockwise);
 
 	// Create the model object.
 	// Initialize the model object.
@@ -110,6 +113,15 @@ void GraphicsClass::Shutdown()
 		m_pModel = NULL;
 	}
 
+	if (m_pCMOModel)
+		m_pCMOModel = nullptr;
+
+	if (m_pEffectFactory)
+		m_pEffectFactory = nullptr;
+
+	if (m_pStates)
+		m_pStates = nullptr;
+
 	// Release the light object.
 	if (m_pLight)
 	{
@@ -162,7 +174,8 @@ bool GraphicsClass::Render()
 	static float angle = 0;
 	angle += 0.01f;
 //	worldMatrix = XMMatrixMultiply(XMMatrixRotationY(angle * 0.5f), XMMatrixMultiply(XMMatrixRotationX(angle), worldMatrix));
-	worldMatrix = XMMatrixMultiply(XMMatrixRotationX(sin(angle)), worldMatrix);
+	worldMatrix = XMMatrixMultiply(XMMatrixRotationX(sin(angle) - 0.5f), worldMatrix);
+	worldMatrix = XMMatrixMultiply(XMMatrixScaling(0.01f, 0.01f, 0.01f), worldMatrix);
 
 	// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	m_pModel->Render(m_pDirect3D->GetDeviceContext());
@@ -180,9 +193,21 @@ bool GraphicsClass::Render()
 */
 
 // Render the model using the texture shader.
-	if (!m_pLightShader->Render(m_pDirect3D->GetDeviceContext(), m_pModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_pModel->GetTexture(), m_pLight->GetDirection(), m_pLight->GetDiffuseColor()))
-		return false;
+//	if (!m_pLightShader->Render(m_pDirect3D->GetDeviceContext(), m_pModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_pModel->GetTexture(), m_pLight->GetDirection(), m_pLight->GetDiffuseColor()))
+//		return false;
 
+	m_pCMOModel->UpdateEffects([&](IEffect* efx) {
+		auto pLight = dynamic_cast<IEffectLights*>(efx);
+		if (pLight)
+		{
+			XMVECTOR lightDir = XMVector3Rotate(m_pLight->GetDirection(), XMVECTOR{ 0.0f, sin(angle), 0.0f, 1.0f });
+			pLight->SetLightDirection(0, lightDir);
+			pLight->SetLightDiffuseColor(0, m_pLight->GetDiffuseColor());
+			pLight->SetLightEnabled(1, false);
+			pLight->SetLightEnabled(2, false);
+		}
+	});
+	m_pCMOModel->Draw(m_pDirect3D->GetDeviceContext(), *m_pStates, worldMatrix, viewMatrix, projectionMatrix);
 
 	// Present the rendered scene to the screen.
 	m_pDirect3D->EndScene();

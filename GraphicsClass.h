@@ -1,5 +1,9 @@
 #pragma once
 
+#include <Model.h>
+#include <Effects.h>
+#include <CommonStates.h>
+
 #include "D3DClass.h"
 #include "ColorShaderClass.h"
 #include "TextureShaderClass.h"
@@ -24,6 +28,10 @@ private:
 
 private:
 	const ConfigClass& m_config;
+
+	std::unique_ptr<CommonStates> m_pStates;
+	std::unique_ptr<EffectFactory> m_pEffectFactory;
+	std::unique_ptr<Model> m_pCMOModel;
 
 	D3DClass* m_pDirect3D;
 	ColorShaderClass* m_pColorShader;
